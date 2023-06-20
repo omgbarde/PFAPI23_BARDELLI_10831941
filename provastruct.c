@@ -10,6 +10,7 @@ typedef struct{
     int distanza;
 }stazione;
 
+
 int main(){
     return 0;
 }
