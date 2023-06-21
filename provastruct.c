@@ -10,7 +10,7 @@ typedef struct{
     int distanza;
 }stazione;
 
-
 int main(){
+    printf("this is a tets\n");
     return 0;
 }
