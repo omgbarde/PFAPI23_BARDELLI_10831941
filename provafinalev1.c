@@ -71,6 +71,7 @@ void execute(char * curr , int lineSize){
             printf("%c",curr[i]);
         }
         printf("'\n");
+        return;
     }
 }
 
