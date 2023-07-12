@@ -18,101 +18,142 @@ typedef elemLista * nodo;
 nodo head = NULL;
 
 nodo cercaStazione(int dist){
+    //printf("cerco %d...\n",dist);
     nodo cursore;
     if(head != NULL){
         cursore = head;
         while(cursore != NULL && cursore->distanza <= dist){
-        printf("cerco %d...\n",dist);
             if(cursore->distanza == dist){
-                printf("trovata!\n");
+                //printf("trovata!\n");
                 return cursore;
             }
             cursore = cursore->next;
         }
     }
-    printf("non trovata\n"); 
+    //printf("non trovata\n"); 
     return NULL;
 }
 
-void creaStazione(int dist){
-    printf("creo %d...\n", dist);
-    nodo new, current, prev;
-    prev = NULL;
-    current = head;
-
-    if(dist >= 0){
-        while(current != NULL && dist > current->distanza){
-            prev = current;
-            current = current->next;
-        }
-        new = malloc(sizeof(elemLista));
-        //new->parcoAuto[] = {(0)};
-        new->distanza = dist;
-        new->next = current;
-        if(prev != NULL){
-            prev->next = new;
-            new->prev = prev;
-        }
-        else{
-            new->prev = NULL;
-            head = new;
-            new->next=current;
-        }
-        //update(new); per aggiornare grafo di raggiungibilità (dalle altre stazioni verso la nuova)
-        printf("aggiunta\n");
-        return;
-    }
-    else{
-        printf("non aggiunta\n");
-        return;
-    }
-}
-
-void demolisciStazione(int dist){
-    //cerco la stazione e salvo il ptr
-    if(dist >= 0){
-        struct stazione * ptr = cercaStazione(dist);
-        if(ptr != NULL){
-            if(ptr->prev == NULL){
-                head = ptr->next;
-                ptr->next->prev = NULL;
-            }
-            else{
-                ptr->prev->next = ptr->next;
-                ptr->next->prev = ptr->prev;
-            }
-            free(ptr);
-        }
-        //update(NULL); per aggiornare grafo di raggiungibilità (dalla stazione modificata verso le altre)
-    }
-}
-
-void aggiungiAuto(int dist, int autonomia){
-    printf("aggiungo %d a %d...\n",autonomia, dist);
+int insert(int dist, int autonomia){
     struct stazione * ptr = cercaStazione(dist);
     int i = 0;
-    if(ptr != NULL){
+    if(ptr != NULL && autonomia > 0){
         while (ptr->parcoAuto[i]!=0 && i < MAX)
         {
             i++;
         }
         if(i < MAX){
             ptr->parcoAuto[i] = autonomia;
-            printf("aggiunta\n");
+            //update(NULL); per aggiornare grafo di raggiungibilità (dalla stazione modificata verso le altre)
+            return 0;
+        }
+    }
+    return 1;
+}
+
+void aggiungiAuto(int dist, int autonomia){
+    //printf("aggiungo %d a %d...\n",autonomia, dist);
+    
+    if(insert(dist, autonomia)==0){
+        printf("aggiunta\n");
+    }
+    else printf("non aggiunta\n");
+
+    return;
+}
+
+void creaStazione(int dist, int * cars, int amount){
+    //printf("creo %d...\n", dist);
+    nodo new, current, prev;
+    prev = NULL;
+    current = head;
+    //aggiunta alla lista
+    if(dist >= 0){
+        while(current != NULL && dist > current->distanza){
+            prev = current;
+            current = current->next;
+        }
+        new = malloc(sizeof(elemLista));
+        //new->parcoAuto = 0;
+        new->distanza = dist;
+        new->next = current;
+        if(current != NULL) current->prev = new;
+        new->prev = prev;
+        //inserimento in mezzo o alla fine
+        if(prev != NULL){
+            prev->next = new;
+        }
+        //inserimento in testa
+        else{
+            head = new;
+            new->next = prev;
+        }
+        //inserimento auto
+        int i = 0, check = 0;
+        int car = cars[i];
+        while(car > 0 && check == 0){
+            check = insert(dist, car);
+            i++;
+            car = cars[i];
+        }
+        //update(new); per aggiornare grafo di raggiungibilità (dalle altre stazioni verso la nuova)
+        printf("aggiunta\n");
+        return;
+    }
+
+    else{
+        printf("non aggiunta\n");
+        return;
+    }
+}
+
+void rottamaAuto(int dist, int autonomia){
+    struct stazione * ptr = cercaStazione(dist);
+    int i = 0;
+    if(ptr != NULL && autonomia > 0){
+        while (ptr->parcoAuto[i] != autonomia && i < MAX && ptr->parcoAuto[i] != 0){
+            i++;
+        }
+        if(i < MAX ){
+            ptr->parcoAuto[i] = 0;
+            //update(NULL); per aggiornare grafo di raggiungibilità (dalla stazione modificata verso le altre)
+            printf("rottamata\n");
+            return;
+        }
+    }
+
+    printf("non rottamata\n");
+    return;
+}
+
+void demolisciStazione(int dist){
+    //printf("demolisco %d\n", dist);
+    //cerco la stazione e salvo il ptr
+    if(dist >= 0){
+        struct stazione * ptr = cercaStazione(dist);
+        if(ptr != NULL){
+            //printf("aggiorno lista\n");
+            if(ptr->prev == NULL){
+                head = ptr->next;
+                ptr->next->prev = NULL;
+            }
+            else if(ptr->next == NULL){
+                printf("%s\n",(char*)ptr->prev);
+                ptr->prev->next = NULL;
+                ptr->prev = NULL;
+            }
+            else{
+                ptr->prev->next = ptr->next;
+                ptr->next->prev = ptr->prev;
+            }
+            free(ptr);
+            printf("demolita\n");
             //update(NULL); per aggiornare grafo di raggiungibilità (dalla stazione modificata verso le altre)
             return;
         }
     }
-    printf("non aggiunta\n");
+    printf("non demolita\n");
     return;
-}
-
-void rottamaAuto(int dist, int autonomia){
-    printf("%d %d\n", dist ,autonomia);
-}
-
-void pianificaPercorso(int start, int finish){
-
 }
 
 void update(struct stazione * new){
@@ -121,18 +162,24 @@ void update(struct stazione * new){
     }
 }
 
+void pianificaPercorso(int start, int finish){
+
+}
 
 void execute(char * curr , int lineSize){
     char * cmd = strtok(curr, " ");
 
     if (strcmp(cmd, "aggiungi-stazione") == 0){
         char * dist = strtok(NULL, " ");
-        creaStazione(atoi(dist));
+        int array [MAX] = {0};
+        int i = 0;
         char * car = strtok(NULL, " ");
         while(car != NULL){
-            aggiungiAuto(atoi(dist), atoi(car));
+            array[i] = atoi(car);
             car = strtok(NULL, " ");
+            i++;
         }
+        creaStazione(atoi(dist), array, i);
         return;
     }
     else if(strcmp(cmd, "demolisci-stazione") == 0){
@@ -168,11 +215,12 @@ void execute(char * curr , int lineSize){
     }
 }
 
-int main(int argc, char**argv){
+int main(int argc, char ** argv){
     char * curr = NULL;
     size_t len = 0;
     __ssize_t lineSize = 0;
 
+    //scansione dell'input
     while(1){
         lineSize = getline(&curr, &len, stdin);
         if(lineSize > 0){
@@ -180,13 +228,34 @@ int main(int argc, char**argv){
         }
         else break;
     }
-    
-    /*
-    stampa l'autostrada
-    while(head!= NULL){
-        printf("%d-->",head->distanza);
-        head = head->next;
-    }*/
 
+    //prova di stampa in entrambi i versi
+    nodo last=head;
+    while(head != NULL){
+        printf("%d :", head->distanza);
+        int i = 0;
+        //while (i< MAX){
+        while (i<MAX){
+            if(head->parcoAuto[i] != 0) printf("%d,", head->parcoAuto[i]);
+            i++;
+        }
+        printf("-->");
+        last = head;
+        head = head->next;
+    }
+    printf("\n");
+    while(last != NULL){
+        printf("%d :", last->distanza);
+        int i = 0;
+        //while (i< MAX){
+        while (i<MAX){
+            if(last->parcoAuto[i] != 0) printf("%d,", last->parcoAuto[i]);
+            i++;
+        }
+        printf("-->");
+        last = last->prev;
+    }
+    printf("\n");
+    //
     return 0;
 }

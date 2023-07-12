@@ -1,6 +1,6 @@
-aggiungi-stazione 10 3 100 200 300
-aggiungi-stazione 30 3 100 200 300
-aggiungi-stazione 20 3 100 200 300
+aggiungi-stazione 10 100 100
+aggiungi-stazione 30 300 300
+aggiungi-stazione 20 200 
 demolisci-stazione 10
 aggiungi-auto 20 500
 rottama-auto 20 100

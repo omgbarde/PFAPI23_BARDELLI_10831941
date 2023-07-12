@@ -1,0 +1,11 @@
+aggiungi-stazione 10 100 100
+aggiungi-stazione 30 300 300
+aggiungi-stazione 40 400 400 400
+aggiungi-stazione 20 200 200 300
+aggiungi-stazione 70 700 700
+aggiungi-stazione 50 500 500
+demolisci-stazione 50
+aggiungi-auto 50 100
+rottama-auto 50 500
+rottama-auto 20 300
+rottama-auto 40 400
