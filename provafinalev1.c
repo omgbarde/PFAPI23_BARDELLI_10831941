@@ -44,7 +44,6 @@ int insert(int dist, int autonomia){
         }
         if(i < MAX){
             ptr->parcoAuto[i] = autonomia;
-            //update(NULL); per aggiornare grafo di raggiungibilità (dalla stazione modificata verso le altre)
             return 0;
         }
     }
@@ -96,7 +95,6 @@ void creaStazione(int dist, int * cars, int amount){
             i++;
             car = cars[i];
         }
-        //update(new); per aggiornare grafo di raggiungibilità (dalle altre stazioni verso la nuova)
         printf("aggiunta\n");
         return;
     }
@@ -116,7 +114,6 @@ void rottamaAuto(int dist, int autonomia){
         }
         if(i < MAX ){
             ptr->parcoAuto[i] = 0;
-            //update(NULL); per aggiornare grafo di raggiungibilità (dalla stazione modificata verso le altre)
             printf("rottamata\n");
             return;
         }
@@ -148,7 +145,6 @@ void demolisciStazione(int dist){
             }
             free(ptr);
             printf("demolita\n");
-            //update(NULL); per aggiornare grafo di raggiungibilità (dalla stazione modificata verso le altre)
             return;
         }
     }
@@ -156,14 +152,12 @@ void demolisciStazione(int dist){
     return;
 }
 
-void update(struct stazione * new){
-    if(new != NULL){
-
-    }
+void update(){
+    
 }
 
 void pianificaPercorso(int start, int finish){
-
+    //update(); per aggiornare grafo di raggiungibilità
 }
 
 void execute(char * curr , int lineSize){
