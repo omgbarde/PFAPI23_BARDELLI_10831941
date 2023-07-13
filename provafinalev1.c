@@ -5,11 +5,13 @@
 
 struct stazione{
     int parcoAuto [MAX];
+    int occupati;
     int distanza;
     //struct stazione * fwd [MAX];
     //struct stazione * bwd [MAX];
     struct stazione * next;
     struct stazione * prev;
+    
 };
 
 typedef struct stazione elemLista;
@@ -36,16 +38,20 @@ nodo cercaStazione(int dist){
 
 int insert(int dist, int autonomia){
     struct stazione * ptr = cercaStazione(dist);
-    int i = 0;
-    if(ptr != NULL && autonomia > 0){
-        while (ptr->parcoAuto[i]!=0 && i < MAX)
-        {
-            i++;
+    int p = 0;
+    if(ptr != NULL && autonomia > 0 && ptr->occupati < MAX){
+        for(int i = 0; i < ptr->occupati; i++){
+            if (ptr->parcoAuto[i] < autonomia){
+                p = i;
+                break;
+            }   
         }
-        if(i < MAX){
-            ptr->parcoAuto[i] = autonomia;
-            return 0;
+        for (int i = ptr->occupati; i >= p; i--){
+            ptr->parcoAuto[i] = ptr->parcoAuto[i - 1];
         }
+        ptr->parcoAuto[p] = autonomia;
+        ptr->occupati ++;
+        return 0;
     }
     return 1;
 }
@@ -66,6 +72,7 @@ void creaStazione(int dist, int * cars, int amount){
     nodo new, current, prev;
     prev = NULL;
     current = head;
+
     //aggiunta alla lista
     if(dist >= 0){
         while(current != NULL && dist > current->distanza){
@@ -73,11 +80,11 @@ void creaStazione(int dist, int * cars, int amount){
             current = current->next;
         }
         new = malloc(sizeof(elemLista));
-        //new->parcoAuto = 0;
         new->distanza = dist;
         new->next = current;
-        if(current != NULL) current->prev = new;
         new->prev = prev;
+        if(current != NULL) current->prev = new;
+
         //inserimento in mezzo o alla fine
         if(prev != NULL){
             prev->next = new;
@@ -85,8 +92,8 @@ void creaStazione(int dist, int * cars, int amount){
         //inserimento in testa
         else{
             head = new;
-            new->next = prev;
         }
+
         //inserimento auto
         int i = 0, check = 0;
         int car = cars[i];
@@ -107,18 +114,24 @@ void creaStazione(int dist, int * cars, int amount){
 
 void rottamaAuto(int dist, int autonomia){
     struct stazione * ptr = cercaStazione(dist);
-    int i = 0;
+    int p = 0;
     if(ptr != NULL && autonomia > 0){
-        while (ptr->parcoAuto[i] != autonomia && i < MAX && ptr->parcoAuto[i] != 0){
-            i++;
+        for(int i = 0; i < ptr->occupati; i++){
+            if (ptr->parcoAuto[i] <= autonomia){
+                p = i;
+                break;
+            }   
         }
-        if(i < MAX ){
-            ptr->parcoAuto[i] = 0;
+        if (ptr->parcoAuto[p] == autonomia){
+            for (int i = p; i < ptr->occupati-1; i++){
+                ptr->parcoAuto[i] = ptr->parcoAuto[i + 1];
+            }
+            ptr->parcoAuto[ptr->occupati - 1] = 0;
+            ptr->occupati --;
             printf("rottamata\n");
             return;
         }
     }
-
     printf("non rottamata\n");
     return;
 }
@@ -152,12 +165,14 @@ void demolisciStazione(int dist){
     return;
 }
 
-void update(){
+void updateGraph(int s){
+    //crea il grafo delle stazioni raggiungibili da s
     
 }
 
 void pianificaPercorso(int start, int finish){
-    //update(); per aggiornare grafo di raggiungibilità
+    updateGraph(start); 
+    //ricerca sul grafo appena creato/aggiornato
 }
 
 void execute(char * curr , int lineSize){
@@ -196,17 +211,17 @@ void execute(char * curr , int lineSize){
     else if(strcmp(cmd, "pianifica-percorso") == 0){
         char * start = strtok(NULL, " ");
         char * finish = strtok(NULL, " ");
-        rottamaAuto(atoi(start), atoi(finish));
+        pianificaPercorso(atoi(start), atoi(finish));
         return;
     }
-    else{
-        printf("errore nell' esecuzione del comando '");
-        for(int i = 0; i < lineSize-1; i++){
+    /*else{
+        printf("errore nell' esecuzione del comando: ");
+        for(int i = 0; i < lineSize; i++){
             printf("%c", curr [i]);
         }
-        printf("'\n");
+        printf("\n");
         return;
-    }
+    }*/
 }
 
 int main(int argc, char ** argv){
@@ -228,7 +243,6 @@ int main(int argc, char ** argv){
     while(head != NULL){
         printf("%d :", head->distanza);
         int i = 0;
-        //while (i< MAX){
         while (i<MAX){
             if(head->parcoAuto[i] != 0) printf("%d,", head->parcoAuto[i]);
             i++;

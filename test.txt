@@ -1,0 +1,6 @@
+aggiungi-stazione 30 40
+aggiungi-stazione 20 5 10 25 15
+aggiungi-stazione 50 20 25 
+aggiungi-stazione 45 30
+rottama-auto 20 10
+rottama-auto 30 40
