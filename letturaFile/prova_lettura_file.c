@@ -10,6 +10,7 @@ int main(int argc, char ** argv){
         for(int i = 0; i < lineSize; i++){
             printf("%c",curr[i]);
         }
+        
     }while(lineSize!=-1);
     printf("\n");
     return 0;
