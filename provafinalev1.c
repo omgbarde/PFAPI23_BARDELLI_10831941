@@ -17,29 +17,42 @@ typedef struct stazione elemLista;
 typedef elemLista *autostrada;
 
 autostrada head = NULL;
+autostrada lastEdited = NULL;
 
 autostrada cercaStazione(int dist){
     // printf("cerco %d...\n",dist);
-    autostrada cursore;
-    if (head != NULL)
-    {
-        cursore = head;
-        while (cursore != NULL && cursore->distanza <= dist)
-        {
-            if (cursore->distanza == dist)
-            {
-                // printf("trovata!\n");
-                return cursore;
-            }
-            cursore = cursore->next;
-        }
+    if(lastEdited != NULL && lastEdited->distanza == dist){
+         return lastEdited;
     }
-    // printf("non trovata\n");
-    return NULL;
+    else{
+        autostrada cursore;
+        if (head != NULL)
+        {
+            cursore = head;
+            while (cursore != NULL && cursore->distanza <= dist)
+            {
+                if (cursore->distanza == dist)
+                {
+                    // printf("trovata!\n");
+                    return cursore;
+                }
+                cursore = cursore->next;
+            }
+        }
+        // printf("non trovata\n");
+        return NULL;
+    }
 }
 
 int insert(int dist, int autonomia){
-    struct stazione *ptr = cercaStazione(dist);
+    struct stazione *ptr;
+    if(lastEdited != NULL && lastEdited->distanza == dist){
+        ptr = lastEdited;
+    }
+    else{
+        ptr = cercaStazione(dist);
+    }
+
     int i = 0;
     if (ptr != NULL && autonomia > 0 && ptr->occupati < MAX)
     {
@@ -107,6 +120,7 @@ void creaStazione(int dist, int *cars, int amount){
             head = new;
         }
 
+        lastEdited = new;
         // inserimento auto
         int i = 0, check = 0;
         int car = cars[i];
@@ -128,7 +142,13 @@ void creaStazione(int dist, int *cars, int amount){
 }
 
 void rottamaAuto(int dist, int autonomia){
-    struct stazione *ptr = cercaStazione(dist);
+    struct stazione *ptr;
+    if(lastEdited != NULL && lastEdited->distanza == dist){
+        ptr = lastEdited;
+    }
+    else{
+        ptr = cercaStazione(dist);
+    }
     int p = 0;
     if (ptr != NULL && autonomia > 0)
     {
@@ -161,7 +181,15 @@ void demolisciStazione(int dist){
     // cerco la stazione e salvo il ptr
     if (dist >= 0)
     {
-        struct stazione *ptr = cercaStazione(dist);
+        struct stazione *ptr;
+        if(lastEdited != NULL && lastEdited->distanza == dist){
+            ptr = lastEdited;
+        }
+        else{
+            ptr = cercaStazione(dist);
+        }
+
+
         if (ptr != NULL)
         {
             // printf("aggiorno lista\n");
@@ -194,7 +222,7 @@ void demolisciStazione(int dist){
 void updateGraph(autostrada s){
     //crea il grafo delle stazioni raggiungibili da s in base ai vari parchi auto
     if(s != NULL){
-        printf("ancora da implementare\n");
+        printf("0 0\n");
     }
 }
 
@@ -206,7 +234,7 @@ void pianificaPercorso(int start, int finish){
     }
     else if(start < finish){
         autostrada stazioneA = cercaStazione(start);
-        autostrada stazioneB = cercaStazione(finish);
+        //autostrada stazioneB = cercaStazione(finish);
         updateGraph(stazioneA);
     }
 }
