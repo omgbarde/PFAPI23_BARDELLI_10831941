@@ -58,7 +58,7 @@ int insert(int dist, int autonomia){
     {
         for (i = 0; i < ptr->occupati; i++)
         {
-            if (ptr->parcoAuto[i] > autonomia)
+            if (ptr->parcoAuto[i] < autonomia)
             {
                 break;
             }
@@ -227,16 +227,28 @@ void updateGraph(autostrada s){
 }
 
 void pianificaPercorso(int start, int finish){
+    autostrada stazioneA;
+    autostrada next;
     if (start == finish)
     {
         printf("%d\n", start);
         return;
     }
-    else if(start < finish){
-        autostrada stazioneA = cercaStazione(start);
-        //autostrada stazioneB = cercaStazione(finish);
-        updateGraph(stazioneA);
+    if(start==lastEdited->distanza){
+        stazioneA = lastEdited;
     }
+    else stazioneA = cercaStazione(start);
+
+    //verso dx
+    if(start < finish){
+        
+
+    }
+    //verso sx
+    else{
+        
+    }
+    
 }
 
 void execute(char *curr, int lineSize){
@@ -307,7 +319,7 @@ int main(int argc, char **argv){
             execute(curr, lineSize);
     } while (!feof(stdin));
 
-    /* prova di stampa in entrambi i versi
+    // prova di stampa in entrambi i versi
     autostrada last = head;
     while (head != NULL)
     {
@@ -339,6 +351,6 @@ int main(int argc, char **argv){
         last = last->prev;
     }
     printf("\n");
-    */
+    //
     return 0;
 }
