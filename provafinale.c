@@ -23,7 +23,7 @@ typedef struct stazione * autostrada;
 autostrada root = NULL;
 autostrada lastEdited = NULL; // ricontrollare se viene usato in tutti i metodi
 
-autostrada minimum(autostrada nodo)
+autostrada minimum(autostrada nodo) //ok
 {
     while (nodo->left != NULL)
     {
@@ -33,7 +33,7 @@ autostrada minimum(autostrada nodo)
     
 }
 
-autostrada successor(autostrada nodo)
+autostrada successor(autostrada nodo) //ok
 {
     if(nodo->right != NULL)
         return minimum(nodo->right);
@@ -46,7 +46,7 @@ autostrada successor(autostrada nodo)
     return y;
 }
 
-autostrada cercaStazione(int dist, autostrada nodo) 
+autostrada cercaStazione(int dist, autostrada nodo) //ok
 {
     // printf("cerco %d...\n",dist);
     if(lastEdited != NULL && lastEdited->distanza == dist)
@@ -57,7 +57,7 @@ autostrada cercaStazione(int dist, autostrada nodo)
     {
         if(nodo == NULL || nodo->distanza == dist)
             return nodo;
-        if (nodo->distanza < dist)
+        if (nodo->distanza > dist)
             if(nodo->left != NULL) return cercaStazione(dist, nodo->left);
             else return NULL;
         else
@@ -66,7 +66,7 @@ autostrada cercaStazione(int dist, autostrada nodo)
     }
 }
 
-int insert(autostrada nodo, int autonomia)
+int insert(autostrada nodo, int autonomia) //ok
 {
     int i = 0;
     if (nodo != NULL && autonomia > 0 && nodo->numeroAuto < MAX)
@@ -90,7 +90,7 @@ int insert(autostrada nodo, int autonomia)
     else return 1;
 }
 
-void aggiungiAuto(autostrada nodo, int autonomia) 
+void aggiungiAuto(autostrada nodo, int autonomia) //ok
 {
     if (insert(nodo, autonomia) == 0)
     {
@@ -102,111 +102,123 @@ void aggiungiAuto(autostrada nodo, int autonomia)
     return;
 }
 
-void leftRotate(autostrada nodo)
+void leftRotate(autostrada nodo) //ok...
 {
-    autostrada y = nodo->right;
-    nodo->right = y->left;
-    if(y->left != NULL)
-        y->left->parent = nodo;
-    y->parent = nodo->parent;
-    if(nodo->parent == NULL)
-        root = y;
-    else if(nodo = nodo->parent->left)
-        nodo->parent->left = y;
-    else nodo->parent->right = y;
-    y->left = nodo;
-    nodo->parent = y;
+    if(nodo != NULL && nodo->right != NULL){
+        autostrada y = nodo->right;
+        nodo->right = y->left;
+        if(y->left != NULL)
+            y->left->parent = nodo;
+        y->parent = nodo->parent;
+        if(nodo->parent == NULL)
+            root = y;
+        else if(nodo == nodo->parent->left)
+            nodo->parent->left = y;
+        else nodo->parent->right = y;
+        y->left = nodo;
+        nodo->parent = y;
+    }
 }
 
-void rightRotate(autostrada nodo)
+void rightRotate(autostrada nodo) //ok...
 {
-    autostrada y = nodo->left;
-    nodo->left = y->right;
-    if(y->right != NULL)
-        y->right->parent = nodo;
-    y->parent = nodo->parent;
-    if(nodo->parent == NULL)
-        root = y;
-    else if(nodo = nodo->parent->left)
-        nodo->parent->left = y;
-    else nodo->parent->right = y;
-    y->left = nodo;
-    nodo->parent = y;
+    if(nodo != NULL && nodo->left != NULL){
+        autostrada y = nodo->left;
+        nodo->left = y->right;
+        if(y->right != NULL)
+            y->right->parent = nodo;
+        y->parent = nodo->parent;
+        if(nodo->parent == NULL)
+            root = y;
+        else if(nodo == nodo->parent->left)
+            nodo->parent->left = y;
+        else nodo->parent->right = y;
+        y->right = nodo;
+        nodo->parent = y;
+    }
 }
 
-void insertFixup(autostrada nodo)
+void insertFixup(autostrada nodo) //ok...
 {
-    autostrada x,y;
-    if(root == NULL){
-        root = nodo;
-        root->color = 2;
-    }
-    else if(root == nodo){
-        root->color = 2;
-    }
-    else
-    {
-        x = nodo->parent;
-        if(x->color == 1){
-            if(x->parent != NULL && x->parent->left != NULL && x == x->parent->left){
-                if (x->parent->right != NULL) y = x->parent->right;
-                if(y->color == 1){
-                    x->color = 2;
-                    y->color = 2;
-                    if(x->parent != NULL){
-                        x->parent->color = 1,
+    if(nodo != NULL){
+        if(nodo == root){
+            root->color = BLACK;
+        }
+        else
+        {
+            autostrada x = nodo->parent;
+            if(x->color == RED){
+                if(x->parent != NULL && x->parent->left != NULL && x == x->parent->left){
+                    autostrada y = NULL;
+                    if (x->parent->right != NULL) y = x->parent->right;
+                    if(y != NULL && y->color == RED){
+                        x->color = BLACK;
+                        y->color = BLACK;           
+                        x->parent->color = RED;
                         insertFixup(x->parent);
+                        
+                    }
+                    else if(x->right != NULL && nodo == x->right)
+                    {
+                        nodo = x;
+                        leftRotate(nodo);
+                        if(nodo->parent != NULL) x = nodo->parent;
+                        else x = NULL;
                     }
                 }
-                else if(x->right != NULL && nodo == x->right)
-                {
-                    nodo = x;
-                    leftRotate(nodo);
-                    if(nodo->parent != NULL) x = nodo->parent;
+                if (x != NULL) x->color = BLACK;
+                if(x != NULL && x->parent != NULL){
+                    x->parent->color = RED;
+                    rightRotate(x->parent);
                 }
             }
-            x->color = 2;
-            if(x->parent != NULL){
-                x->parent->color = 1;
-                rightRotate(x->parent);
-            }
-        }
-        else{
-            if(x->parent != NULL && x->parent->right != NULL && x == x->parent->right){
-                if(x->parent->left != NULL) y = x->parent->left;
-                if(y->color == 1){
-                    x->color = 2;
-                    y->color = 2;
-                    if(x->parent != NULL){
-                        x->parent->color = 1;
+            else{
+                if(x->parent != NULL && x->parent->right != NULL && x == x->parent->right){
+                    autostrada y = NULL;
+                    if(x->parent->left != NULL) y = x->parent->left;
+                    if(y != NULL && y->color == RED){
+                        x->color = BLACK;
+                        y->color = BLACK;
+                        x->parent->color = RED;
                         insertFixup(x->parent);
+                    
+                    }
+                    else if(x->left != NULL && nodo == x->left)
+                    {
+                        nodo = x;
+                        rightRotate(nodo);
+                        if(nodo->parent != NULL) x = nodo->parent;
+                        else x = NULL;
                     }
                 }
-                else if(x->left != NULL && nodo == x->left)
-                {
-                    nodo = x;
-                    rightRotate(nodo);
-                    if(nodo->parent != NULL) x = nodo->parent;
+                if (x != NULL) x->color = BLACK;
+                if(x != NULL && x->parent != NULL){
+                    x->parent->color = RED;
+                    leftRotate(x->parent);
                 }
-            }
-            x->color = 2;
-            if(x->parent != NULL){
-                x->parent->color = 1;
-                leftRotate(x->parent);
             }
         }
     }
 }
 
-void creaStazione(int dist, int *cars, int amount) //evitare duplicati
+autostrada creaNodo(int dist) //ok
 {
-    if(dist >= 0){
-        printf("creo stazione %d\n", dist);
+    autostrada temp = malloc(sizeof(struct stazione));
+    temp->distanza = dist;
+    temp->numeroAuto = 0;
+    temp->right = NULL;
+    temp->left = NULL;
+    temp->parent = NULL;
+    temp->color = RED;
+    return temp;
+}
+
+void creaStazione(int dist, int *cars, int amount) //ok
+{
+    if(dist >= 0 && cercaStazione(dist,root) == NULL){
         autostrada y = NULL;
         autostrada x = root;
-        autostrada new = malloc(sizeof(struct stazione));
-
-        new->distanza = dist;
+        autostrada new = creaNodo(dist);
         while(x != NULL)
         {
             y = x;
@@ -222,27 +234,26 @@ void creaStazione(int dist, int *cars, int amount) //evitare duplicati
             y->left = new;
         else
             y->right = new;
-        new->left = NULL;
-        new->right = NULL;
-        new->color = RED;
-        printf("fixup...\n");
-        insertFixup(new);
-        lastEdited = new;
+
         // inserimento auto
         int i = 0, check = 0;
         int car = cars[i];
         while (check == 0 && i < amount)
         {
-            check = insert(lastEdited, car);
+            check = insert(new, car);
             i++;
             car = cars[i];
         }
+
+        insertFixup(new);
+        lastEdited = new;
         printf("aggiunta\n");
         return;
     }
+    printf("non aggiunta\n");
 }
 
-void rottamaAuto(autostrada nodo, int autonomia)
+void rottamaAuto(autostrada nodo, int autonomia) //ok
 {
     int p = 0;
     if (nodo != NULL && autonomia > 0)
@@ -273,95 +284,103 @@ void rottamaAuto(autostrada nodo, int autonomia)
 
 void deleteFixup(autostrada nodo)
 {
-    autostrada w;
-    if(nodo->color = RED || nodo->parent == NULL)
-        nodo->color = BLACK;
-    else if(nodo == nodo->parent->left){
-        w = nodo->parent->right;
-        if(w->color == RED){
-            w->color = BLACK;
-            nodo->parent->color = RED;
-            leftRotate(nodo->parent);
+    if (nodo != NULL){
+        autostrada w;
+        if(nodo->color == RED || nodo->parent == NULL)
+            nodo->color = BLACK;
+        else if(nodo == nodo->parent->left){
             w = nodo->parent->right;
-        }
-        if(w->left->color == BLACK && w->right->color == BLACK)
-        {
-            w->color = RED;
-            deleteFixup(nodo->parent);
-        }
-        else if(w->right->color == BLACK){
-            w->left->color = BLACK;
-            w->color = RED;
-            rightRotate(w);
-            w = nodo->parent->right;
-        }
-        w->color = nodo->parent->color;
-        nodo->parent->color = BLACK;
-        w->right->color = BLACK;
-        leftRotate(nodo->parent);
-    }
-    else{
-        w = nodo->parent->left;
-        if(w->color == RED){
-            w->color = BLACK;
-            nodo->parent->color = RED;
-            leftRotate(nodo->parent);
-            w = nodo->parent->left;
-        }
-        if(w->left->color == BLACK && w->right->color == BLACK)
-        {
-            w->color = RED;
-            deleteFixup(nodo->parent);
-        }
-        else if(w->left->color == BLACK){
+            if(w->color == RED){
+                w->color = BLACK;
+                nodo->parent->color = RED;
+                leftRotate(nodo->parent);
+                w = nodo->parent->right;
+            }
+            if(w->left->color == BLACK && w->right->color == BLACK)
+            {
+                w->color = RED;
+                deleteFixup(nodo->parent);
+            }
+            else if(w->right->color == BLACK){
+                w->left->color = BLACK;
+                w->color = RED;
+                rightRotate(w);
+                w = nodo->parent->right;
+            }
+            w->color = nodo->parent->color;
+            nodo->parent->color = BLACK;
             w->right->color = BLACK;
-            w->color = RED;
-            leftRotate(w);
-            w = nodo->parent->right;
+            leftRotate(nodo->parent);
         }
-        w->color = nodo->parent->color;
-        nodo->parent->color = BLACK;
-        w->left->color = BLACK;
-        rightRotate(nodo->parent);
+        else{
+            w = nodo->parent->left;
+            if(w->color == RED){
+                w->color = BLACK;
+                nodo->parent->color = RED;
+                leftRotate(nodo->parent);
+                w = nodo->parent->left;
+            }
+            if(w->left->color == BLACK && w->right->color == BLACK)
+            {
+                w->color = RED;
+                deleteFixup(nodo->parent);
+            }
+            else if(w->left->color == BLACK){
+                w->right->color = BLACK;
+                w->color = RED;
+                leftRotate(w);
+                w = nodo->parent->right;
+            }
+            w->color = nodo->parent->color;
+            nodo->parent->color = BLACK;
+            w->left->color = BLACK;
+            rightRotate(nodo->parent);
+        }
     }
 }
 
-void demolisciStazione(autostrada nodo)
+void demolisciStazione(autostrada nodo) //problema con x NULL
 {   if(nodo != NULL){
-        printf("demolisco %d", nodo->distanza);
-        autostrada x,y;
+        autostrada x = NULL,y = NULL;
         if(nodo->left == NULL || nodo->right == NULL) 
             y = nodo;
         else y = successor(nodo);
+        
         if(y->left != NULL)
             x = y->left;
-        else x = y->right;
-        x->parent = y->parent;
-        if(y->parent == NULL)
+        else if(y->right != NULL)x = y->right;
+        
+        if(y->parent != NULL){
+            x->parent = y->parent;
+        }
+        if(y->parent == NULL){
             root = x;
-        else if(y = y->parent->left)
+        }
+        else if(y->parent != NULL && y->parent->left != NULL && y == y->parent->left){
             y->parent->left = x;
-        else y->parent->right = x;
-        nodo->distanza = y->distanza; //forse è il contrario??
-        if(y->color == BLACK)
+        }
+        else if(y->parent != NULL){
+            y->parent->right = x;
+        }
+        if(y != nodo && y != NULL) nodo->distanza = y->distanza; //forse è il contrario??
+        if(y != NULL && y->color == BLACK)
             deleteFixup(x);
         free(nodo);
         printf("demolita\n");
     }
     else printf("non demolita\n");
-
 }
 
-void updateGraph(struct stazione * s)
+/*void updateGraph(struct stazione * s)
 {
     //crea il grafo delle stazioni raggiungibili da s in base ai vari parchi auto
     if(s != NULL)
     {
         printf("0 0\n");
     }
-}
+}*/
 
-void pianificaPercorso(int start, int finish)
+/*void pianificaPercorso(int start, int finish)
 {
     struct stazione * stazioneA;
     struct stazione * next;
@@ -386,7 +405,18 @@ void pianificaPercorso(int start, int finish)
         
     }
     
-}
+}*/
+
+/*void print(autostrada nodo)
+{
+    autostrada temp = nodo;
+    if (temp != NULL)
+    {
+        print(temp->left);
+        printf(" %d ", temp->distanza);
+        print(temp->right);
+    }
+}*/
 
 void execute(char *curr, int lineSize)
 {
@@ -432,8 +462,8 @@ void execute(char *curr, int lineSize)
     }
     else if (strcmp(cmd, "pianifica-percorso") == 0)
     {
-        char *start = strtok(NULL, " ");
-        char *finish = strtok(NULL, " ");
+        //char *start = strtok(NULL, " ");
+        //char *finish = strtok(NULL, " ");
         printf("ancora da implementare\n");
         //pianificaPercorso(atoi(start), atoi(finish));
         return;
@@ -461,39 +491,6 @@ int main(int argc, char **argv)
         if (lineSize > 0)
             execute(curr, lineSize);
     } while (!feof(stdin));
-
-    /* prova di stampa in entrambi i versi
-    struct stazione * last = root;
-    while (root != NULL)
-    {
-        printf("%d :", root->distanza);
-        int i = 0;
-        while (i < MAX)
-        {
-            if (root->parcoAuto[i] != 0)
-                printf("%d,", root->parcoAuto[i]);
-            i++;
-        }
-        printf("-->");
-        last = root;
-        root = root->next;
-    }
-    printf("\n");
-    while (last != NULL)
-    {
-        printf("%d :", last->distanza);
-        int i = 0;
-        // while (i< MAX){
-        while (i < MAX)
-        {
-            if (last->parcoAuto[i] != 0)
-                printf("%d,", last->parcoAuto[i]);
-            i++;
-        }
-        printf("-->");
-        last = last->prev;
-    }
-    printf("\n");
-    */
+    
     return 0;
 }
