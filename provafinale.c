@@ -695,7 +695,7 @@ int main(int argc, char **argv)
     size_t len = 0;
     __ssize_t lineSize = 0;
 
-    //creazione albero vuoto
+   
     nil = creaNodoNil();
     root = nil;
 
