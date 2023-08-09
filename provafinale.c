@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #define MAX 512
 
 enum nodeColor {
@@ -34,17 +35,47 @@ autostrada minimum(autostrada nodo) //ok
     
 }
 
+autostrada maximum(autostrada nodo) //ok
+{
+    while (nodo->right != nil)
+    {
+        nodo = nodo->right;
+    }
+    return nodo;
+}
+
 autostrada successor(autostrada nodo) //ok
 {
-    if(nodo->right != nil)
-        return minimum(nodo->right);
-    autostrada y = nodo->parent;
-    while(y != nil && nodo == y->right)
+    if(nodo != nil)
     {
-        nodo = y;
-        y = y->parent;
+        if(nodo->right != nil)
+            return minimum(nodo->right);
+        autostrada y = nodo->parent;
+        while(y != nil && nodo == y->right)
+        {
+            nodo = y;
+            y = y->parent;
+        }
+        return y;
     }
-    return y;
+    return nil;
+}
+
+autostrada predecessor(autostrada nodo) //ok
+{
+    if(nodo != nil)
+    {
+        if(nodo->left != nil)
+            return maximum(nodo->left);
+        autostrada y = nodo->parent;
+        while(y != nil && nodo == y->left)
+        {
+            nodo = y;
+            y = y->parent;
+        }
+        return y;
+    }
+    return nil;
 }
 
 autostrada cercaStazione(int dist, autostrada nodo) //ok
@@ -197,14 +228,15 @@ void rightRotate(autostrada nodo) //ok
 }
 */
 
-void insertFixup(autostrada nodo){
+void insertFixup(autostrada nodo) // ok
+{
         while (nodo->parent != NULL && nodo->parent->color == RED) {
         if (nodo->parent == nodo->parent->parent->left) {
-            autostrada nodoio = nodo->parent->parent->right;
+            autostrada zio = nodo->parent->parent->right;
 
-            if (nodoio != NULL && nodoio->color == RED) {
+            if (zio != NULL && zio->color == RED) {
                 nodo->parent->color = BLACK;
-                nodoio->color = BLACK;
+                zio->color = BLACK;
                 nodo->parent->parent->color = RED;
                 nodo = nodo->parent->parent;
             } else {
@@ -217,11 +249,11 @@ void insertFixup(autostrada nodo){
                 rightRotate(nodo->parent->parent);
             }
         } else {
-            autostrada nodoio = nodo->parent->parent->left;
+            autostrada zio = nodo->parent->parent->left;
 
-            if (nodoio != NULL && nodoio->color == RED) {
+            if (zio != NULL && zio->color == RED) {
                 nodo->parent->color = BLACK;
-                nodoio->color = BLACK;
+                zio->color = BLACK;
                 nodo->parent->parent->color = RED;
                 nodo = nodo->parent->parent;
             } else {
@@ -242,6 +274,7 @@ void insertFixup(autostrada nodo){
 autostrada creaNodoNil() //ok
 {
     autostrada temp = (autostrada)malloc(sizeof(struct stazione));
+    temp->distanza = -1;
     temp->color = BLACK;
     return temp;
 }
@@ -327,7 +360,8 @@ void rottamaAuto(autostrada nodo, int autonomia) //ok
     return;
 }
 
-void trapianta(autostrada u, autostrada v) {
+void trapianta(autostrada u, autostrada v) //ok
+{
     if (u->parent == NULL) {
         root = v;
     } else if (u == u->parent->left) {
@@ -338,7 +372,7 @@ void trapianta(autostrada u, autostrada v) {
     v->parent = u->parent;
 }
 
-void deleteFixup(autostrada nodo)
+void deleteFixup(autostrada nodo) //ok
 {
     //if (nodo != nil ){
         while (nodo != root && nodo->color == BLACK) {
@@ -396,7 +430,7 @@ void deleteFixup(autostrada nodo)
     //}
 }
 
-void demolisciStazione(autostrada nodo) 
+void demolisciStazione(autostrada nodo) //ok
 {   
     if(nodo != nil && nodo != NULL){
         autostrada x = NULL;
@@ -438,7 +472,7 @@ void demolisciStazione(autostrada nodo)
     else printf("non demolita\n");
 }
 
-/*void demolisciStanodoione(autostrada nodo)
+/*void demolisciStazione(autostrada nodo)
 {
     if(nodo != nil)
     {
@@ -475,41 +509,104 @@ void demolisciStazione(autostrada nodo)
     else printf("non demolita\n");
 }*/
 
-/*void updateGraph(struct stanodoione * s)
+/*void updateGraph(struct stazione * s)
 {
-    //crea il grafo delle stanodoioni raggiungibili da s in base ai vari parchi auto
+    //crea il grafo delle stazioni raggiungibili da s in base ai vari parchi auto
     if(s != NULL)
     {
         printf("0 0\n");
     }
 }*/
 
-/*void pianificaPercorso(int start, int finish)
+bool isReachable(autostrada a, autostrada b)
 {
-    struct stanodoione * stanodoioneA;
-    struct stanodoione * next;
+    if(b->distanza > a->distanza){
+        int max_autonomia = a->parcoAuto[0];
+        int distanza = b->distanza - a->distanza;
+        if (max_autonomia > distanza) return true;
+        else return false;
+    }
+    else{
+        int max_autonomia = b->parcoAuto[0];
+        int distanza = a->distanza - b->distanza;
+        if (max_autonomia > distanza) return true;
+        else return false;
+    }
+}
+
+void pianificaPercorso(int start, int finish)
+{
+    //start e finish sono sicuramente presenti
+    autostrada A = cercaStazione(start,root);
+    autostrada B = cercaStazione(finish,root);
+    int max_autonomia = A->parcoAuto[0];
+
     if (start == finish)
     {
         printf("%d\n", start);
         return;
     }
-    if(start==lastEdited->distanza)
-    {
-        stanodoioneA = lastEdited;
-    }
-    else stanodoioneA = cercaStanodoione(start, root);
 
     //verso dx
     if(start < finish){
-        
+        int searching = 1;
+        int viaggio = B->distanza - A->distanza;
+        if(max_autonomia - viaggio > 0)         //no tappe intermedie
+        { 
+            printf("%d %d\n", start, finish);
+        }
+        else                                    //tappe intermedie
+        {       
+            int n = 0;                        
+            autostrada current = A;
 
+            while(searching)
+            {
+                n++;
+                autostrada intermedie [n];
+                for(int i = 0; i < n; i ++){
+                    int check = 0;
+                    while(!check){
+                        autostrada next = successor(current);
+                        max_autonomia = current->parcoAuto[0];
+                        viaggio = next->distanza - current->distanza;
+                        if(max_autonomia - viaggio > 0){
+                            if(next->distanza = finish && current->parcoAuto[0] - viaggio > 0){
+                                viaggio = B->distanza - current->distanza;
+                                check = 1; //cammino trovato
+                            }
+                            intermedie[i] = next;
+                            current = next;
+                        }
+                        else{}
+                    }
+                }
+                
+                printf("%d " ,start);
+                for(int i = 0; i < n; i ++){
+                    printf("%d ", intermedie[i]->distanza);
+                }
+                printf("%d\n", finish);
+                return;
+
+            }
+
+        }
     }
     //verso sx
     else{
-        
+        int viaggio = A->distanza - B->distanza;
+        if(max_autonomia - viaggio > 0)         //no tappe intermedie
+        { 
+            printf("%d %d\n", start, finish);
+        }
+        else                                    //tappe intermedie
+        {                               
+
+        }
     }
-    
-}*/
+
+}
 
 /*void print(autostrada nodo)
 {
@@ -522,7 +619,7 @@ void demolisciStazione(autostrada nodo)
     }
 }*/
 
-void execute(char *curr, int lineSinodoe)
+void execute(char *curr, int lineSize)
 {
     char *cmd = strtok(curr, " ");
 
@@ -566,15 +663,14 @@ void execute(char *curr, int lineSinodoe)
     }
     else if (strcmp(cmd, "pianifica-percorso") == 0)
     {
-        //char *start = strtok(NULL, " ");
-        //char *finish = strtok(NULL, " ");
-        printf("ancora da implementare\n");
-        //pianificaPercorso(atoi(start), atoi(finish));
+        char *start = strtok(NULL, " ");
+        char *finish = strtok(NULL, " ");
+        pianificaPercorso(atoi(start), atoi(finish));
         return;
     }
     /*else{
-        printf("errore nell' esecunodoione del comando: ");
-        for(int i = 0; i < lineSinodoe; i++){
+        printf("errore nell' esecuzione del comando: ");
+        for(int i = 0; i < lineSize; i++){
             printf("%c", curr [i]);
         }
         printf("\n");
@@ -582,7 +678,8 @@ void execute(char *curr, int lineSinodoe)
     }*/
 }
 
-void stampaInOrdine(autostrada nodo) {
+void stampaInOrdine(autostrada nodo) 
+{
     if (nodo == nil) {
         return;
     }
@@ -596,22 +693,25 @@ int main(int argc, char **argv)
 {
     char *curr = NULL;
     size_t len = 0;
-    __ssize_t lineSinodoe = 0;
+    __ssize_t lineSize = 0;
 
-    //creanodoione albero vuoto
+    //creazione albero vuoto
     nil = creaNodoNil();
     root = nil;
 
     // scansione dell'input
     do
     {
-        lineSinodoe = getline(&curr, &len, stdin);
-        if (lineSinodoe > 0)
-            execute(curr, lineSinodoe);
+        lineSize = getline(&curr, &len, stdin);
+        if (lineSize > 0)
+            execute(curr, lineSize);
     } while (!feof(stdin));
     
-    printf("%d\n", root->distanza);
+    /*printf("%d\n", root->distanza);
     stampaInOrdine(root);
     printf("\n");
+    autostrada pre = predecessor(nil);
+    printf("%d\n", pre->distanza);*/
+
     return 0;
 }
