@@ -9,7 +9,6 @@ enum nodeColor {
   BLACK
 };
 
-
 struct stazione{
     int distanza;
     int parcoAuto[MAX];
@@ -262,12 +261,12 @@ void creaStazione(int dist, int *cars, int amount)
 
         // inserimento auto
         int i = 0, check = 0;
-        int car = cars[i];
-        while (check == 0 && i < amount)
+        //int car = cars[i];
+        while (check == 0 && i <= amount)
         {
+            int car = cars[i];
             check = insert(new, car);
             i++;
-            car = cars[i];
         }
 
         insertFixup(new);
@@ -575,9 +574,9 @@ void pianificaPercorso(int start, int finish)
     lista queue = NULL;
     enqueue(&queue, A);
 
-    while(!isEmpty(queue)){
+    /*while(!isEmpty(queue)){
         autostrada curr = dequeue(&queue);
-        //printf("%d ",curr->distanza);
+        printf("%d ",curr->distanza);
         autostrada temp = NULL;
         if(curr != max){
             temp = successor(curr); //crea segm. fault
@@ -599,7 +598,7 @@ void pianificaPercorso(int start, int finish)
             else next = NULL;
         }
 
-    }
+    }*/
     printf("nessun percorso\n");
 }
 
@@ -610,16 +609,17 @@ void execute(char *curr, int lineSize)
     if (strcmp(cmd, "aggiungi-stazione") == 0)
     {
         char *dist = strtok(NULL, " ");
+        char *count = strtok(NULL, " ");
         int array[MAX] = {0};
-        int i = 0;
         char *car = strtok(NULL, " ");
+        int i = 0;
         while (car != NULL)
         {
             array[i] = atoi(car);
             car = strtok(NULL, " ");
             i++;
         }
-        creaStazione(atoi(dist), array, i);
+        creaStazione(atoi(dist), array, atoi(count));
         return;
     }
     else if (strcmp(cmd, "demolisci-stazione") == 0)
@@ -690,12 +690,8 @@ int main(int argc, char **argv)
         if (lineSize > 0)
             execute(curr, lineSize);
     } while (!feof(stdin));
-    
-    /*printf("%d\n", root->distanza);
-    stampaInOrdine(root);
-    printf("\n");
-    autostrada pre = predecessor(nil);
-    printf("%d\n", pre->distanza);*/
+
+    //libera la memoriaaaa
 
     return 0;
 }
