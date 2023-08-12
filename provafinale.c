@@ -31,6 +31,7 @@ typedef struct elemLista * lista;
 autostrada nil;
 autostrada root;
 autostrada lastEdited = NULL; // ricontrollare se viene usato in tutti i metodi
+int numeroStazioni = 0;
 
 autostrada minimum(autostrada nodo) 
 {
@@ -271,6 +272,7 @@ void creaStazione(int dist, int *cars, int amount)
 
         insertFixup(new);
         lastEdited = new;
+        numeroStazioni ++;
         printf("aggiunta\n");
         return;
     }
@@ -413,6 +415,7 @@ void demolisciStazione(autostrada nodo)
 
         if(lastEdited == nodo) lastEdited = x;
         free(nodo);
+        numeroStazioni --;
         printf("demolita\n");
     }
     else printf("non demolita\n");
@@ -459,12 +462,16 @@ void enqueue(lista *l, autostrada nodo)
 
 autostrada dequeue(lista *l)
 {
-    autostrada punt;
+    autostrada nodo;
+    lista punt;
     if(!isEmpty(*l)){
-        punt = (*l)->node;
-        if((*l)->next != NULL) *l = (*l)->next;
-        else *l = NULL;
-        return punt;
+        nodo = (*l)->node;
+        //if((*l)->next != NULL)
+        punt = *l; 
+        *l = (*l)->next;
+        free(punt);
+        //else *l = NULL;
+        return nodo;
     }
     return NULL;
 }
@@ -562,44 +569,88 @@ void pianificaPercorso(int start, int finish)
     }
 
     autostrada A, B;
-    if(lastEdited!= NULL && lastEdited->distanza == start) A = lastEdited;
+    if(lastEdited != NULL && lastEdited->distanza == start) A = lastEdited;
     else A = cercaStazione(start,root);
     
-    if(lastEdited!= NULL && lastEdited->distanza == finish) B = lastEdited;
+    if(lastEdited != NULL && lastEdited->distanza == finish) B = lastEdited;
     else B = cercaStazione(finish,root);
-    autostrada max = maximum(root);
-    //autostrada min = minimum(root);
+
     
-    autostrada next = NULL;
-    lista queue = NULL;
-    enqueue(&queue, A);
+    if(start < finish)                    //verso dx
+    {
+        lista queue = NULL;
+        enqueue(&queue, A);
 
-    /*while(!isEmpty(queue)){
-        autostrada curr = dequeue(&queue);
-        printf("%d ",curr->distanza);
-        autostrada temp = NULL;
-        if(curr != max){
-            temp = successor(curr); //crea segm. fault
+        while (!isEmpty(queue))
+        {
+            autostrada curr = dequeue(&queue);
+            printf("%d ", curr->distanza);
+            autostrada temp = NULL;
+            if(curr->distanza != B->distanza){
+                temp = successor(A);
+            }
+            else{
+                //percorso trovato
+                temp = NULL;
+            }
+            while(temp){
+                autostrada next = temp;
+                if(next->distanza != B->distanza){
+                    printf("%d ", next->distanza);
+                    enqueue(&queue, next);
+                    temp = successor(next);
+                }
+                else{
+                    //percorso trovato
+                    printf("%d\n", temp->distanza);
+                    temp = NULL;
+                    return;
+
+                }
+            }
+            printf("sub\n");
         }
-        else break;
+        free(queue);
+        return;
+    }
+    else                                //verso sx potrebbe diventare inutile con reachability
+    {
+        lista queue = NULL;
+        enqueue(&queue, A);
 
-        if (curr == B){
-            printf("percorso trovato\n");
-            return;
+        while (!isEmpty(queue))
+        {
+            autostrada curr = dequeue(&queue);
+            printf("%d ", curr->distanza);
+            autostrada temp = NULL;
+            if(curr->distanza != B->distanza){
+                temp = predecessor(A);
+            }
+            else{
+                //percorso trovato
+                temp = NULL;
+            }
+            while(temp){
+                autostrada prev = temp;
+                if(prev->distanza != B->distanza){
+                    printf("%d ", prev->distanza);
+                    enqueue(&queue, prev);
+                    temp = predecessor(prev);
+                }
+                else{
+                    //percorso trovato
+                    printf("%d\n", temp->distanza);
+                    temp = NULL;
+                    return;
+
+                }
+            }
+            printf("sub\n");
         }
-        if(temp != NULL && temp != nil && isReachable(curr,temp)) next = temp;
-        else next = NULL;
-
-        while(next != nil && next != NULL){
-            enqueue(&queue, next);
-            if(next != B || next != max) temp = successor(next); //viene passato un nodo null ma perchèèèèèèèèèè
-            else temp = NULL;
-            if(temp != NULL &&temp != nil && isReachable(curr,temp)) next = temp;
-            else next = NULL;
-        }
-
-    }*/
-    printf("nessun percorso\n");
+        free(queue);
+        return;
+    }
+ 
 }
 
 void execute(char *curr, int lineSize)
@@ -609,17 +660,15 @@ void execute(char *curr, int lineSize)
     if (strcmp(cmd, "aggiungi-stazione") == 0)
     {
         char *dist = strtok(NULL, " ");
-        char *count = strtok(NULL, " ");
+        int count = atoi(strtok(NULL, " "));
         int array[MAX] = {0};
         char *car = strtok(NULL, " ");
-        int i = 0;
-        while (car != NULL)
+        for(int i = 0; i < count; i++) //poco efficiente
         {
             array[i] = atoi(car);
             car = strtok(NULL, " ");
-            i++;
         }
-        creaStazione(atoi(dist), array, atoi(count));
+        creaStazione(atoi(dist), array, count);
         return;
     }
     else if (strcmp(cmd, "demolisci-stazione") == 0)
@@ -667,9 +716,10 @@ void stampaInOrdine(autostrada nodo)
     if (nodo == nil) {
         return;
     }
-
+    printf("left\n");
     stampaInOrdine(nodo->left);
     printf("%d (%s) ", nodo->distanza, (nodo->color == RED) ? "ROSSO" : "NERO");
+    printf("\nright\n");
     stampaInOrdine(nodo->right);
 }
 
@@ -678,7 +728,6 @@ int main(int argc, char **argv)
     char *curr = NULL;
     size_t len = 0;
     __ssize_t lineSize = 0;
-
    
     nil = creaNodoNil();
     root = nil;
@@ -691,7 +740,6 @@ int main(int argc, char **argv)
             execute(curr, lineSize);
     } while (!feof(stdin));
 
-    //libera la memoriaaaa
-
+    //libera la memoria
     return 0;
 }
