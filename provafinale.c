@@ -24,6 +24,8 @@ typedef struct stazione * autostrada;
 struct elemLista{
     autostrada node;
     struct elemLista * next;
+    struct elemLista * prec;
+    struct elemLista * tail;
 };
 
 typedef struct elemLista * lista;
@@ -31,7 +33,7 @@ typedef struct elemLista * lista;
 autostrada nil;
 autostrada root;
 autostrada lastEdited = NULL; // ricontrollare se viene usato in tutti i metodi
-int numeroStazioni = 0;
+
 
 autostrada minimum(autostrada nodo) 
 {
@@ -272,7 +274,6 @@ void creaStazione(int dist, int *cars, int amount)
 
         insertFixup(new);
         lastEdited = new;
-        numeroStazioni ++;
         printf("aggiunta\n");
         return;
     }
@@ -415,7 +416,6 @@ void demolisciStazione(autostrada nodo)
 
         if(lastEdited == nodo) lastEdited = x;
         free(nodo);
-        numeroStazioni --;
         printf("demolita\n");
     }
     else printf("non demolita\n");
@@ -423,23 +423,30 @@ void demolisciStazione(autostrada nodo)
 
 bool isReachable(autostrada a, autostrada b)
 {
-    if(b->distanza > a->distanza){
-        int max_autonomia = a->parcoAuto[0];
-        int distanza = b->distanza - a->distanza;
-        if (max_autonomia >= distanza && distanza > 0) return true;
-        else return false;
-    }
-    else{
-        int max_autonomia = b->parcoAuto[0];
-        int distanza = a->distanza - b->distanza;
-        if (max_autonomia >= distanza && distanza > 0) return true;
-        else return false;
-    }
+    int max_autonomia = a->parcoAuto[0];
+    int distanza = 0;
+
+    if(b->distanza > a->distanza) distanza = b->distanza - a->distanza;
+    else distanza = a->distanza - b->distanza;
+
+    if (max_autonomia >= distanza) return true;
+    else return false;
 }
 
 bool isEmpty(lista l){
     if(l == NULL)return true;
     else return false;
+}
+
+void addList(lista *l, autostrada nodo)
+{
+    lista punt;
+    punt = malloc(sizeof(struct elemLista));
+    punt->node = nodo;
+    punt->next = *l;
+    if(!isEmpty(*l)) punt->tail = (*l)->tail;
+    else punt->tail = punt;
+    *l = punt;
 }
 
 void enqueue(lista *l, autostrada nodo)
@@ -458,6 +465,7 @@ void enqueue(lista *l, autostrada nodo)
         }
         cursore->next = punt;
     }
+        (*l)->tail = punt;
 }
 
 autostrada dequeue(lista *l)
@@ -466,191 +474,98 @@ autostrada dequeue(lista *l)
     lista punt;
     if(!isEmpty(*l)){
         nodo = (*l)->node;
-        //if((*l)->next != NULL)
         punt = *l; 
         *l = (*l)->next;
         free(punt);
-        //else *l = NULL;
         return nodo;
     }
     return NULL;
 }
 
-/*void pianificaPercorso(int start, int finish)
+void svuota(lista *l){
+    lista punt;
+    while(!isEmpty(*l)){
+        punt = *l; 
+        *l = (*l)->next;
+        free(punt);
+    }
+}
+
+void pianificaPercorso(autostrada A, autostrada B, lista * candidato)
 {
-    //start e finish sono sicuramente presenti
-    if (start == finish)
+    
+    if (A->distanza == B->distanza)         //stazione uguale
     {
-        printf("%d\n", start);
+        addList(candidato,A);
         return;
     }
-
-    autostrada A, B;
-    autostrada max = maximum(root);
-    //autostrada min = minimum(root);        
-
-    if(lastEdited->distanza == start) A = lastEdited;
-    else A = cercaStazione(start,root);
     
-    if(lastEdited->distanza == finish) B = lastEdited;
-    else B = cercaStazione(finish,root);
+    if(A->distanza < B->distanza){          //verso dx 
+        autostrada start = A;
+        autostrada finish = B;
+        autostrada best = B;
+        addList(candidato,finish);
 
-    //verso dx
-    if(start < finish)
-    {
-        if(isReachable(A, B))                   //raggiungibile senza tappe intermedie
-        { 
-            printf("%d %d\n", A->distanza, B->distanza);
-        }
-        else if(A != max && successor(A) != B)              //controllo tappe intermedie
-        {   
-            autostrada next = successor(A);
-            int n = 0;
-            bool notFound = true;                        
-            autostrada current = A;
-            while(notFound){
-                n++;
-                autostrada intermedie[n];
-                while(next != B && !isReachable(current,B)){
-                    for(int i = 0; i < n; i++){
-                        if(isReachable(current,next)){
-                            intermedie[i] = next;
-                        }
-                        if(next != max && next != B){
-                            current = next;
-                            next = successor(next);
-                        }
-                        else break;
-                    }
-                    current = next;
+        while(start != finish){    
+            autostrada ptr = finish;                                                                 
+            while(ptr->distanza >= start->distanza){
+                if(isReachable(ptr, finish)){
+                    best = ptr;
                 }
-                if(current == B) break;
-                else
-                {
-                    printf("%d ", start);
-                    for (int i = 0; i < n; i++)
-                    {
-                        printf("%d ", intermedie[i]->distanza);
-                    }
-                    printf("%d\n", finish);
-                    notFound = false;
-                }
-                return;
+                if(ptr != start) ptr = predecessor(ptr);
+                else break;
             }
+
+            if(best != finish){
+                finish = best;
+                addList(candidato,best);
+            }
+            else break;
         }
-        printf("nessun percorso\n");
-    }
-    //verso sx
-    else
-    {
-        printf("%d %d\n", A->distanza, B->distanza);
-    }
-
-}*/
-
-/*void print(autostrada nodo)
-{
-    autostrada temp = nodo;
-    if (temp != NULL)
-    {
-        print(temp->left);
-        printf(" %d ", temp->distanza);
-        print(temp->right);
-    }
-}*/
-
-void pianificaPercorso(int start, int finish)
-{
-    //start e finish sono sicuramente presenti
-    if (start == finish)
-    {
-        printf("%d\n", start);
+        if((*candidato)->node != A) svuota(candidato);
         return;
     }
 
-    autostrada A, B;
-    if(lastEdited != NULL && lastEdited->distanza == start) A = lastEdited;
-    else A = cercaStazione(start,root);
-    
-    if(lastEdited != NULL && lastEdited->distanza == finish) B = lastEdited;
-    else B = cercaStazione(finish,root);
+    else{                                   //verso sx sbaglia ultima tappa :(
+        autostrada start = A;
+        autostrada finish = B;
+        autostrada best = B;
+        enqueue(candidato,start);
 
-    
-    if(start < finish)                    //verso dx
-    {
-        lista queue = NULL;
-        enqueue(&queue, A);
+        while(start != finish){    
+            autostrada ptr = start;                                                                 
+            while(ptr->distanza <= start->distanza){
+                if(isReachable(start, ptr)){
+                    best = ptr;
+                }
+                if(ptr != finish) ptr = predecessor(ptr);
+                else break;
+            }
 
-        while (!isEmpty(queue))
+            if(best != start){
+                start = best;
+                enqueue(candidato,best);
+            }
+            else break;
+        }
+        if((*candidato)->tail->node != B) svuota(candidato);
+        return;
+    }
+}
+
+void stampaPercorso(lista candidato){
+    if(isEmpty(candidato)) printf("nessun percorso\n");
+    else{
+        autostrada ptr = dequeue(&candidato);
+        printf("%d", ptr->distanza);
+        while (!isEmpty(candidato))
         {
-            autostrada curr = dequeue(&queue);
-            printf("%d ", curr->distanza);
-            autostrada temp = NULL;
-            if(curr->distanza != B->distanza){
-                temp = successor(A);
-            }
-            else{
-                //percorso trovato
-                temp = NULL;
-            }
-            while(temp){
-                autostrada next = temp;
-                if(next->distanza != B->distanza){
-                    printf("%d ", next->distanza);
-                    enqueue(&queue, next);
-                    temp = successor(next);
-                }
-                else{
-                    //percorso trovato
-                    printf("%d\n", temp->distanza);
-                    temp = NULL;
-                    return;
-
-                }
-            }
-            printf("sub\n");
+            printf(" "); 
+            ptr = dequeue(&candidato);
+            printf("%d", ptr->distanza);
         }
-        free(queue);
-        return;
+        printf("\n");
     }
-    else                                //verso sx potrebbe diventare inutile con reachability
-    {
-        lista queue = NULL;
-        enqueue(&queue, A);
-
-        while (!isEmpty(queue))
-        {
-            autostrada curr = dequeue(&queue);
-            printf("%d ", curr->distanza);
-            autostrada temp = NULL;
-            if(curr->distanza != B->distanza){
-                temp = predecessor(A);
-            }
-            else{
-                //percorso trovato
-                temp = NULL;
-            }
-            while(temp){
-                autostrada prev = temp;
-                if(prev->distanza != B->distanza){
-                    printf("%d ", prev->distanza);
-                    enqueue(&queue, prev);
-                    temp = predecessor(prev);
-                }
-                else{
-                    //percorso trovato
-                    printf("%d\n", temp->distanza);
-                    temp = NULL;
-                    return;
-
-                }
-            }
-            printf("sub\n");
-        }
-        free(queue);
-        return;
-    }
- 
 }
 
 void execute(char *curr, int lineSize)
@@ -696,19 +611,19 @@ void execute(char *curr, int lineSize)
     }
     else if (strcmp(cmd, "pianifica-percorso") == 0)
     {
-        char *start = strtok(NULL, " ");
-        char *finish = strtok(NULL, " ");
-        pianificaPercorso(atoi(start), atoi(finish));
+        int start = atoi(strtok(NULL, " "));
+        int finish = atoi(strtok(NULL, " "));
+        autostrada A, B;
+        if(lastEdited != NULL && lastEdited->distanza == start) A = lastEdited;
+        else A = cercaStazione(start,root);
+    
+        if(lastEdited != NULL && lastEdited->distanza == finish) B = lastEdited;
+        else B = cercaStazione(finish,root);
+        lista candidato = NULL;
+        pianificaPercorso(A, B, &candidato);
+        stampaPercorso(candidato);
         return;
     }
-    /*else{
-        printf("errore nell' esecuzione del comando: ");
-        for(int i = 0; i < lineSize; i++){
-            printf("%c", curr [i]);
-        }
-        printf("\n");
-        return;
-    }*/
 }
 
 void stampaInOrdine(autostrada nodo) 
@@ -729,6 +644,7 @@ int main(int argc, char **argv)
     size_t len = 0;
     __ssize_t lineSize = 0;
    
+    //inizializzo l'albero
     nil = creaNodoNil();
     root = nil;
 
@@ -740,6 +656,7 @@ int main(int argc, char **argv)
             execute(curr, lineSize);
     } while (!feof(stdin));
 
-    //libera la memoria
+    //liberare la memoria
+
     return 0;
 }
