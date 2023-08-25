@@ -19,6 +19,9 @@ struct station
     struct station *parent;
     struct station *left;
     struct station *right;
+    bool visited;
+    struct station *step;
+    
 };
 
 typedef struct station *node_t;
@@ -34,7 +37,6 @@ struct listElement
 typedef struct listElement *list;
 
 // SISTEMARE VARIABILI GLOBALI
-
 node_t nil;
 node_t root;
 node_t lastEdited = NULL; // ricontrollare se viene usato in tutti i metodi
@@ -273,7 +275,8 @@ node_t createNode(int dist)
     temp->left = nil;
     temp->parent = NULL;
     temp->color = RED;
-    
+    temp->visited = false;
+
     return temp;
 }
 
@@ -347,10 +350,10 @@ void deleteCar(node_t node, int range)
             node->cars[node->numCars - 1] = 0;
             node->numCars--;
             printf("rottamata\n");
+            return;
         }
     }
-    else
-        printf("non rottamata\n");
+    printf("non rottamata\n");
     
     return;
 }
@@ -616,8 +619,36 @@ void flush(list *l)
     return;
 }
 
+void resetVisited(node_t node){
+    if (node == nil) {
+        return;
+    }
+    resetVisited(node->left);
+    node->visited = false;
+    node->step = NULL;
+    resetVisited(node->right);
+
+}
+
+void findAdjacents(node_t node, node_t start, list * adjList)
+{
+    node_t ptr = node;
+    while(ptr->distance < start->distance){
+        /*if (ptr != start)*/ ptr = successor(ptr);
+        /*else break;*/
+
+        if(isReachable(ptr,node) && ptr->visited == false){
+            ptr->visited = true;
+            ptr->step = node;
+            enqueue(adjList,ptr);
+        }
+    }
+    return;
+}
+
 void findPath(node_t A, node_t B, list *candidate)
 {
+
     if (A->distance == B->distance)         //stazione uguale
     {
         addList(candidate, A);
@@ -654,17 +685,17 @@ void findPath(node_t A, node_t B, list *candidate)
             else
                 break;
         }
-        if ((*candidate)->node != A)
+        if ((*candidate)->node != A){
             flush(candidate);
-
-        return;
+        }
     }
-    else                                    //verso sx
+    /*else                                  //verso sx best
     { 
         node_t start = A;
         node_t finish = B;
         node_t best = B;
         enqueue(candidate,start);
+        steps++;
 
         while(start != finish){    
             node_t ptr = start;                                                                 
@@ -679,13 +710,50 @@ void findPath(node_t A, node_t B, list *candidate)
             if(best != start){
                 start = best;
                 enqueue(candidate,best);
+                steps++;
             }
             else break;
         }
-        if((*candidate)->tail->node != B) flush(candidate);
+        if((*candidate)->tail->node != B){
+            flush(candidate);
+            steps = 0;
+        }
         
-        return;
+    }*/
+    else                                    // verso sx reverse bfs
+    {
+        node_t start = A;
+        node_t finish = B;
+        list adjList = NULL;
+        
+        finish->visited = true;
+
+        findAdjacents(finish,start,&adjList);
+        while (!isEmpty(adjList))
+        {
+            findAdjacents(adjList->node,start,&adjList);
+            (void)dequeue(&adjList);
+            //se gia visitata ma step vecchio piu lontano dall origine rispetto a quello corrente, e la distanza dallo start >= del nuovo lo sostistuisco
+        }
+
+        node_t ptr = start;
+        while(ptr->step != NULL){
+            enqueue(candidate,ptr);
+            ptr = ptr->step;
+        }
+        enqueue(candidate,ptr);
+
+        //printf("%d\n",(*candidate)->tail->node->distance);
+
+        if ((*candidate)->tail->node != finish){
+            flush(candidate);
+        }
+
+        resetVisited(root);
+
+
     }
+    return;
 }
 
 void printPath(list candidate)
