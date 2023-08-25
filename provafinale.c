@@ -733,7 +733,6 @@ void findPath(node_t A, node_t B, list *candidate)
         {
             findAdjacents(adjList->node,start,&adjList);
             (void)dequeue(&adjList);
-            //se gia visitata ma step vecchio piu lontano dall origine rispetto a quello corrente, e la distanza dallo start >= del nuovo lo sostistuisco
         }
 
         node_t ptr = start;
