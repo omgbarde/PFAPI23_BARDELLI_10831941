@@ -36,14 +36,17 @@ struct listElement
 
 typedef struct listElement *list;
 
-// SISTEMARE VARIABILI GLOBALI
-node_t nil;
-node_t root;
-node_t lastEdited = NULL; // ricontrollare se viene usato in tutti i metodi
-
-node_t minimum(node_t node)
+struct tree
 {
-    while (node->left != nil)
+    node_t root;
+    node_t nil;
+};
+
+typedef struct tree * tree_t;
+
+node_t minimum(node_t node, tree_t T)
+{
+    while (node->left != T->nil)
     {
         node = node->left;
     }
@@ -51,9 +54,9 @@ node_t minimum(node_t node)
     return node;
 }
 
-node_t maximum(node_t node)
+node_t maximum(node_t node, tree_t T)
 {
-    while (node->right != nil)
+    while (node->right != T->nil)
     {
         node = node->right;
     }
@@ -61,16 +64,16 @@ node_t maximum(node_t node)
     return node;
 }
 
-node_t successor(node_t node)
+node_t successor(node_t node, tree_t T)
 {
-    if (node != nil)
+    if (node != T->nil)
     {
-        if (node->right != nil)
-            return minimum(node->right);
+        if (node->right != T->nil)
+            return minimum(node->right, T);
         
         node_t y = node->parent;
         
-        while (y != nil && node == y->right)
+        while (y != T->nil && node == y->right)
         {
             node = y;
             y = y->parent;
@@ -79,19 +82,19 @@ node_t successor(node_t node)
         return y;
     }
 
-    return nil;
+    return T->nil;
 }
 
-node_t predecessor(node_t node)
+node_t predecessor(node_t node, tree_t T)
 {
-    if (node != nil)
+    if (node != T->nil)
     {
-        if (node->left != nil)
-            return maximum(node->left);
+        if (node->left != T->nil)
+            return maximum(node->left, T);
 
         node_t y = node->parent;
         
-        while (y != nil && node == y->left)
+        while (y != T->nil && node == y->left)
         {
             node = y;
             y = y->parent;
@@ -100,29 +103,24 @@ node_t predecessor(node_t node)
         return y;
     }
     
-    return nil;
+    return T->nil;
 }
 
-node_t findStation(int dist, node_t node)
+node_t findStation(int dist, node_t node, tree_t T)
 {
-    if (lastEdited != NULL && lastEdited->distance == dist)
-        return lastEdited;
-
+    if (node == T->nil || node->distance == dist)
+        return node;
+    else if (node->distance > dist)
+        return findStation(dist, node->left,T);
     else
-    {
-        if (node == nil || node->distance == dist)
-            return node;
-        if (node->distance > dist)
-            return findStation(dist, node->left);
-        else
-            return findStation(dist, node->right);
-    }
+        return findStation(dist, node->right,T);
+
 }
 
-int insert(node_t node, int range)
+int insert(node_t node, int range, tree_t T) // poco efficiente
 {
     int i = 0;
-    if (node != nil && range > 0 && node->numCars < MAX)
+    if (node != T->nil && range > 0 && node->numCars < MAX)
     {
         for (i = 0; i < node->numCars; i++)
         {
@@ -146,9 +144,9 @@ int insert(node_t node, int range)
         return 1;
 }
 
-void addCar(node_t node, int range)
+void addCar(node_t node, int range, tree_t T)
 {
-    if (insert(node, range) == 0)
+    if (insert(node, range,T) == 0)
     {
         printf("aggiunta\n");
     }
@@ -158,18 +156,18 @@ void addCar(node_t node, int range)
     return;
 }
 
-void leftRotate(node_t node)
+void leftRotate(node_t node, tree_t T)
 {
     node_t y = node->right;
     node->right = y->left;
     
-    if (y->left != nil)
+    if (y->left != T->nil)
         y->left->parent = node;
     
     y->parent = node->parent;
     
     if (node->parent == NULL)
-        root = y;
+        T->root = y;
     else if (node == node->parent->left)
         node->parent->left = y;
     else
@@ -181,15 +179,15 @@ void leftRotate(node_t node)
     return;
 }
 
-void rightRotate(node_t node)
+void rightRotate(node_t node, tree_t T)
 {
     node_t y = node->left;
     node->left = y->right;
-    if (y->right != nil)
+    if (y->right != T->nil)
         y->right->parent = node;
     y->parent = node->parent;
     if (node->parent == NULL)
-        root = y;
+        T->root = y;
     else if (node == node->parent->left)
         node->parent->left = y;
     else
@@ -200,7 +198,7 @@ void rightRotate(node_t node)
     return;
 }
 
-void insertFixup(node_t node)
+void insertFixup(node_t node, tree_t T)
 {
     while (node->parent != NULL && node->parent->color == RED)
     {
@@ -220,11 +218,11 @@ void insertFixup(node_t node)
                 if (node == node->parent->right)
                 {
                     node = node->parent;
-                    leftRotate(node);
+                    leftRotate(node,T);
                 }
                 node->parent->color = BLACK;
                 node->parent->parent->color = RED;
-                rightRotate(node->parent->parent);
+                rightRotate(node->parent->parent,T);
             }
         }
         else
@@ -243,16 +241,16 @@ void insertFixup(node_t node)
                 if (node == node->parent->left)
                 {
                     node = node->parent;
-                    rightRotate(node);
+                    rightRotate(node,T);
                 }
                 node->parent->color = BLACK;
                 node->parent->parent->color = RED;
-                leftRotate(node->parent->parent);
+                leftRotate(node->parent->parent,T);
             }
         }
     }
 
-    root->color = BLACK;
+    T->root->color = BLACK;
     
     return;
 }
@@ -266,13 +264,13 @@ node_t createNilNode()
     return temp;
 }
 
-node_t createNode(int dist)
+node_t createNode(int dist, tree_t T)
 {
     node_t temp = (node_t)malloc(sizeof(struct station));
     temp->distance = dist;
     temp->numCars = 0;
-    temp->right = nil;
-    temp->left = nil;
+    temp->right = T->nil;
+    temp->left = T->nil;
     temp->parent = NULL;
     temp->color = RED;
     temp->visited = false;
@@ -280,15 +278,15 @@ node_t createNode(int dist)
     return temp;
 }
 
-void createStation(int dist, int *cars, int amount)
+void createStation(int dist, int *cars, int amount, tree_t T)
 {
-    if (dist >= 0 && findStation(dist, root) == nil)
+    if (dist >= 0 && findStation(dist, T->root, T) == T->nil)
     {
         node_t y = NULL;
-        node_t x = root;
-        node_t new = createNode(dist);
+        node_t x = T->root;
+        node_t new = createNode(dist,T);
         
-        while (x != nil)
+        while (x != T->nil)
         {
             y = x;
             if (dist < x->distance)
@@ -300,7 +298,7 @@ void createStation(int dist, int *cars, int amount)
         new->parent = y;
         
         if (y == NULL)
-            root = new; // inserimento ad albero vuoto
+            T->root = new; // inserimento ad albero vuoto
         else if (dist < y->distance)
             y->left = new;
         else
@@ -312,12 +310,11 @@ void createStation(int dist, int *cars, int amount)
         while (check == 0 && i <= amount)
         {
             int car = cars[i];
-            check = insert(new, car);
+            check = insert(new, car,T);
             i++;
         }
 
-        insertFixup(new);
-        lastEdited = new;
+        insertFixup(new,T);
         printf("aggiunta\n");
     }
     else
@@ -326,10 +323,18 @@ void createStation(int dist, int *cars, int amount)
     return;
 }
 
-void deleteCar(node_t node, int range)
+tree_t initTree(){
+    tree_t temp = (tree_t)malloc(sizeof(struct tree));
+    temp->nil = createNilNode();
+    temp->root = temp->nil;
+
+    return temp;
+}
+
+void deleteCar(node_t node, int range, tree_t T)
 {
     int p = 0;
-    if (node != nil && node != NULL && range > 0)
+    if (node != T->nil && node != NULL && range > 0)
     {
         for (int i = 0; i < node->numCars; i++)
         {
@@ -358,11 +363,11 @@ void deleteCar(node_t node, int range)
     return;
 }
 
-void transplant(node_t u, node_t v)
+void transplant(node_t u, node_t v, tree_t T)
 {
     if (u->parent == NULL)
     {
-        root = v;
+        T->root = v;
     }
     else if (u == u->parent->left)
     {
@@ -375,9 +380,9 @@ void transplant(node_t u, node_t v)
     v->parent = u->parent;
 }
 
-void deleteFixup(node_t node)
+void deleteFixup(node_t node, tree_t T)
 {
-    while (node != root && node->color == BLACK)
+    while (node != T->root && node->color == BLACK)
     {
         if (node == node->parent->left)
         {
@@ -386,7 +391,7 @@ void deleteFixup(node_t node)
             {
                 w->color = BLACK;
                 node->parent->color = RED;
-                leftRotate(node->parent);
+                leftRotate(node->parent,T);
                 w = node->parent->right;
             }
             if (w->left->color == BLACK && w->right->color == BLACK)
@@ -400,14 +405,14 @@ void deleteFixup(node_t node)
                 {
                     w->left->color = BLACK;
                     w->color = RED;
-                    rightRotate(w);
+                    rightRotate(w,T);
                     w = node->parent->right;
                 }
                 w->color = node->parent->color;
                 node->parent->color = BLACK;
                 w->right->color = BLACK;
-                leftRotate(node->parent);
-                node = root;
+                leftRotate(node->parent,T);
+                node = T->root;
             }
         }
         else
@@ -417,7 +422,7 @@ void deleteFixup(node_t node)
             {
                 w->color = BLACK;
                 node->parent->color = RED;
-                rightRotate(node->parent);
+                rightRotate(node->parent,T);
                 w = node->parent->left;
             }
             if (w->right->color == BLACK && w->left->color == BLACK)
@@ -431,14 +436,14 @@ void deleteFixup(node_t node)
                 {
                     w->right->color = BLACK;
                     w->color = RED;
-                    leftRotate(w);
+                    leftRotate(w,T);
                     w = node->parent->left;
                 }
                 w->color = node->parent->color;
                 node->parent->color = BLACK;
                 w->left->color = BLACK;
-                rightRotate(node->parent);
-                node = root;
+                rightRotate(node->parent,T);
+                node = T->root;
             }
         }
     }
@@ -447,27 +452,27 @@ void deleteFixup(node_t node)
     return;
 }
 
-void deleteStation(node_t node)
+void deleteStation(node_t node, tree_t T)
 {
-    if (node != nil && node != NULL)
+    if (node != T->nil && node != NULL)
     {
         node_t x = NULL;
         node_t y = node;
         enum nodeColor originalColor = y->color;
 
-        if (node->left == nil)
+        if (node->left == T->nil)
         {
             x = node->right;
-            transplant(node, node->right);
+            transplant(node, node->right,T);
         }
-        else if (node->right == nil)
+        else if (node->right == T->nil)
         {
             x = node->left;
-            transplant(node, node->left);
+            transplant(node, node->left,T);
         }
         else
         {
-            y = successor(node);
+            y = successor(node,T);
             originalColor = y->color;
             x = y->right;
 
@@ -477,12 +482,12 @@ void deleteStation(node_t node)
             }
             else
             {
-                transplant(y, y->right);
+                transplant(y, y->right,T);
                 y->right = node->right;
                 y->right->parent = y;
             }
 
-            transplant(node, y);
+            transplant(node, y,T);
             y->left = node->left;
             y->left->parent = y;
             y->color = node->color;
@@ -490,11 +495,8 @@ void deleteStation(node_t node)
 
         if (originalColor == BLACK)
         {
-            deleteFixup(x);
+            deleteFixup(x,T);
         }
-
-        if (lastEdited == node)
-            lastEdited = x;
 
         free(node);
         printf("demolita\n");
@@ -505,16 +507,16 @@ void deleteStation(node_t node)
     return;
 }
 
-void destroySubtree(node_t node)
+void destroySubtree(node_t node, tree_t T)
 {
-    if (node->left != nil && node->left != NULL) // prima sottoalbero sx
+    if (node->left != T->nil && node->left != NULL) // prima sottoalbero sx
     {
-        destroySubtree(node->left);
+        destroySubtree(node->left,T);
     }
 
-    if (node->right != nil && node->right != NULL) // poi sottoalbero dx
+    if (node->right != T->nil && node->right != NULL) // poi sottoalbero dx
     {
-        destroySubtree(node->right);
+        destroySubtree(node->right,T);
     }
 
     free(node); // poi se stesso
@@ -619,23 +621,23 @@ void flush(list *l)
     return;
 }
 
-void resetVisited(node_t node){
-    if (node == nil) {
+void resetVisited(node_t node, tree_t T){
+    if (node == T->nil) {
         return;
     }
-    resetVisited(node->left);
+    resetVisited(node->left,T);
     node->visited = false;
     node->step = NULL;
-    resetVisited(node->right);
+    resetVisited(node->right,T);
 
 }
 
-void findAdjacents(node_t node, node_t start, list * adjList)
+void findAdjacents(node_t node, node_t start, list * adjList, tree_t T)
 {
     node_t ptr = node;
+
     while(ptr->distance < start->distance){
-        /*if (ptr != start)*/ ptr = successor(ptr);
-        /*else break;*/
+        ptr = successor(ptr,T);
 
         if(isReachable(ptr,node) && ptr->visited == false){
             ptr->visited = true;
@@ -643,19 +645,20 @@ void findAdjacents(node_t node, node_t start, list * adjList)
             enqueue(adjList,ptr);
         }
     }
+
     return;
 }
 
-void findPath(node_t A, node_t B, list *candidate)
+void findPath(node_t A, node_t B, list *candidate, tree_t T)
 {
 
-    if (A->distance == B->distance)         //stazione uguale
+    if (A->distance == B->distance)         // stazione uguale
     {
         addList(candidate, A);
 
         return;
     }
-    if (A->distance < B->distance)          //verso dx
+    else if (A->distance < B->distance)     // verso dx
     { 
         node_t start = A;
         node_t finish = B;
@@ -665,6 +668,7 @@ void findPath(node_t A, node_t B, list *candidate)
         while (start != finish)
         {
             node_t ptr = finish;
+
             while (ptr->distance >= start->distance)
             {
                 if (isReachable(ptr, finish))
@@ -672,7 +676,7 @@ void findPath(node_t A, node_t B, list *candidate)
                     best = ptr;
                 }
                 if (ptr != start)
-                    ptr = predecessor(ptr);
+                    ptr = predecessor(ptr,T);
                 else
                     break;
             }
@@ -689,38 +693,7 @@ void findPath(node_t A, node_t B, list *candidate)
             flush(candidate);
         }
     }
-    /*else                                  //verso sx best
-    { 
-        node_t start = A;
-        node_t finish = B;
-        node_t best = B;
-        enqueue(candidate,start);
-        steps++;
-
-        while(start != finish){    
-            node_t ptr = start;                                                                 
-            while(ptr->distance <= start->distance){
-                if(isReachable(start, ptr)){
-                    best = ptr;
-                }
-                if(ptr != finish) ptr = predecessor(ptr);
-                else break;
-            }
-
-            if(best != start){
-                start = best;
-                enqueue(candidate,best);
-                steps++;
-            }
-            else break;
-        }
-        if((*candidate)->tail->node != B){
-            flush(candidate);
-            steps = 0;
-        }
-        
-    }*/
-    else                                    // verso sx reverse bfs
+    else                                    // verso sx
     {
         node_t start = A;
         node_t finish = B;
@@ -728,10 +701,10 @@ void findPath(node_t A, node_t B, list *candidate)
         
         finish->visited = true;
 
-        findAdjacents(finish,start,&adjList);
+        findAdjacents(finish,start,&adjList,T);
         while (!isEmpty(adjList))
         {
-            findAdjacents(adjList->node,start,&adjList);
+            findAdjacents(adjList->node,start,&adjList,T);
             (void)dequeue(&adjList);
         }
 
@@ -742,16 +715,15 @@ void findPath(node_t A, node_t B, list *candidate)
         }
         enqueue(candidate,ptr);
 
-        //printf("%d\n",(*candidate)->tail->node->distance);
-
         if ((*candidate)->tail->node != finish){
             flush(candidate);
         }
 
-        resetVisited(root);
+        resetVisited(T->root,T);
 
 
     }
+    
     return;
 }
 
@@ -775,7 +747,7 @@ void printPath(list candidate)
     return;
 }
 
-void execute(char *curr, int lineSize)
+void execute(char *curr, int lineSize, tree_t T)
 {
     char *cmd = strtok(curr, " ");
 
@@ -786,36 +758,36 @@ void execute(char *curr, int lineSize)
         int array[MAX] = {0};
         char *car = strtok(NULL, " ");
 
-        for (int i = 0; i < count; i++) // poco efficiente
+        for (int i = 0; i < count; i++)
         {
             array[i] = atoi(car);
             car = strtok(NULL, " ");
         }
         
-        createStation(atoi(dist), array, count);
+        createStation(atoi(dist), array, count, T);
     }
     else if (strcmp(cmd, "demolisci-stazione") == 0)
     {
         char *dist = strtok(NULL, " ");
-        node_t target = findStation(atoi(dist), root);
+        node_t target = findStation(atoi(dist), T->root, T);
         
-        deleteStation(target);
+        deleteStation(target,T);
     }
     else if (strcmp(cmd, "aggiungi-auto") == 0)
     {
         char *dist = strtok(NULL, " ");
         char *arg = strtok(NULL, " ");
-        node_t target = findStation(atoi(dist), root);
+        node_t target = findStation(atoi(dist), T->root, T);
         
-        addCar(target, atoi(arg));
+        addCar(target, atoi(arg),T);
     }
     else if (strcmp(cmd, "rottama-auto") == 0)
     {
         char *dist = strtok(NULL, " ");
         char *arg = strtok(NULL, " ");
-        node_t target = findStation(atoi(dist), root);
+        node_t target = findStation(atoi(dist), T->root, T);
         
-        deleteCar(target, atoi(arg));
+        deleteCar(target, atoi(arg),T);
     }
     else if (strcmp(cmd, "pianifica-percorso") == 0)
     {
@@ -823,25 +795,15 @@ void execute(char *curr, int lineSize)
         int finish = atoi(strtok(NULL, " "));
         
         node_t A, B;
-
-        if (lastEdited != NULL && lastEdited->distance == start)
-            A = lastEdited;
-        else
-            A = findStation(start, root);
-
-        if (lastEdited != NULL && lastEdited->distance == finish)
-            B = lastEdited;
-        else
-            B = findStation(finish, root);
-        
         list candidate = NULL;
 
-        findPath(A, B, &candidate);
+        A = findStation(start, T->root, T);
+        B = findStation(finish, T->root, T);
+
+        findPath(A, B, &candidate, T);
         printPath(candidate);
     }
-    else{
-        printf("errore nell'esecuzione del comando %s\n", cmd);
-    }
+    else printf("errore nell'esecuzione del comando %s\n", cmd);
     
     return;
 }
@@ -852,22 +814,23 @@ int main(int argc, char **argv)
     size_t len = 0;
     __ssize_t lineSize = 0;
 
-    // inizializzo l'albero
-    nil = createNilNode();
-    root = nil;
+    // inizializzo l'albero autostrada
+    tree_t autostrada = initTree();
+    autostrada->nil = createNilNode();
+    autostrada->root = autostrada->nil;
 
     // scansione dell'input
     do
     {
         lineSize = getline(&curr, &len, stdin);
         if (lineSize > 0)
-            execute(curr, lineSize);
+            execute(curr, lineSize, autostrada);
 
     } while (!feof(stdin));
 
     // libera la memoria
-    destroySubtree(root);
-    free(nil);
+    destroySubtree(autostrada->root, autostrada);
+    free(autostrada->nil);
 
     return 0;
 }
