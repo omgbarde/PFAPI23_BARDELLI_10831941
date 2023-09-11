@@ -6,7 +6,7 @@
 
 | memoria max a runtime | tempo di esecuzione |
 | --------------------- | ------------------- |
-| < 40 mB               | ~ 5,7s             |
+|  40,2 mB               | ~ 5,7s             |
 
 *N.B. le performance sono basate sui test non pubblici eseguiti dal server verificatore*
 
