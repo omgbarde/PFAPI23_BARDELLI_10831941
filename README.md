@@ -2,8 +2,6 @@
 
 #### ***Lorenzo Bardelli***
 
-[*consegna*](/home/barde/Scrivania/API/PFAPI23_BARDELLI_10831941/Testo Prova Finale 2023.pdf "link alla traccia")
-
 **performance**
 
 | memoria max a runtime | tempo di esecuzione |
