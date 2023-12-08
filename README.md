@@ -21,3 +21,5 @@ per i percorsi classici verso dx, procedendo a ritroso considero sempre la stazi
 per i percorsi verso sx ho implementato un algoritmo in stile BFS partendo anche qui dalla stazione finale, così facendo garantisco al contempo il percorso minore e ottimo in termini di distanza dall' inizio dell' autostrada, per costruzione infatti il primo percorso trovato è quello ottimo.
 
 Un ottimizzazione ulteriore sul meccanismo di aggiunta/ demolizione auto avrebbe migliorato ulteriormente il punteggio, essendo quello il bottleneck principale, ad esempio implementando un max-heap o una struttura ad albero con puntatore all'elemento massimo.
+
+il formato in file unico era richiesto a causa del server verificatore.
