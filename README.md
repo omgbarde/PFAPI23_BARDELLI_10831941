@@ -1,7 +1,9 @@
 # Prova Finale di Algoritmi e Strutture Dati 2022-2023
 
 #### ***Lorenzo Bardelli***
-
+- **traccia**
+  
+  [file di riferimento](https://github.com/omgbarde/PFAPI23_BARDELLI_10831941/blob/cd6ad11e6d63bb85ea36e1b544601eafc9531f49/Testo%20Prova%20Finale%202023.pdf)
 - **performance**
 <div align="center">
   
