@@ -1,7 +1,7 @@
 # Prova Finale di Algoritmi e Strutture Dati 2022-2023
 
 #### ***Lorenzo Bardelli***
-- **traccia**
+## **traccia**
   
   [file di riferimento](https://github.com/omgbarde/PFAPI23_BARDELLI_10831941/blob/cd6ad11e6d63bb85ea36e1b544601eafc9531f49/Testo%20Prova%20Finale%202023.pdf)
 - **performance**
@@ -15,7 +15,7 @@
   
 </div>
 
-- **commenti**
+## **commenti**
 
   Per il salvataggio delle stazioni di servizio necessitavo di una struttura dati abbastanza efficiente per gli inserimenti/ cancellazioni e al contempo per la ricerca, ho optato   quindi per un albero red-black. 
 
