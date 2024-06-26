@@ -3,7 +3,7 @@
 ## **traccia**
   
   [file di riferimento](https://github.com/omgbarde/PFAPI23_BARDELLI_10831941/blob/cd6ad11e6d63bb85ea36e1b544601eafc9531f49/Testo%20Prova%20Finale%202023.pdf)
-- **performance**
+## **performance**
 <div align="center">
   
   | **memoria max a runtime** 	| **tempo di esecuzione** 	|
