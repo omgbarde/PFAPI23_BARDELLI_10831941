@@ -1,9 +1,3 @@
-# Prova Finale di Algoritmi e Strutture Dati 2022-2023
-
-## **traccia**
-  
-
-
 # Highway Stations Shortest Path Calculator
 
 Welcome to the **Highway Stations Shortest Path Calculator** repository! 
