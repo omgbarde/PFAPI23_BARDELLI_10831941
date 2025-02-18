@@ -26,7 +26,7 @@ Different strategies were used based on the direction of travel:
 
 <div align="center">
   
-  | **memoria max a runtime** 	| **tempo di esecuzione** 	|
+  | **max runtime memory** 	| **execution time** 	|
   |:-------------------------:	|:-----------------------:	|
   |          40,2 mB          	|          ~ 5,7s         	|
 
